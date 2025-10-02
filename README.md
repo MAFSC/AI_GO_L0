@@ -15,6 +15,7 @@ docker compose up --build -d
 # initialization of regtest, wallets, connections and block/tx generation
 ../scripts/bootstrap_regtest.sh
 ../scripts/spam_tx.sh
-# Grafana: http://localhost:3000 (Armaturenbrett L0 BTC Regtest)
+# Grafana: http://localhost:3000 (dashboard L0 BTC Regtest)
 # Prometheus: http://localhost:9090
+
 ```
