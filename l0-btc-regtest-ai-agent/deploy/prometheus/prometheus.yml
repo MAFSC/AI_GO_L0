@@ -1,6 +1,0 @@
-global:
-  scrape_interval: 5s
-scrape_configs:
-  - job_name: 'agents'
-    static_configs:
-      - targets: ['agent_control:9090','agent_experiment:9090']
