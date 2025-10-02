@@ -1,0 +1,23 @@
+FROM golang:1.22 AS build
+WORKDIR /src
+
+# Прокси и отключение GOSUMDB на стенде, чтобы не падать в закрытых сетях
+ENV GOPROXY=https://proxy.golang.org,https://goproxy.io,direct
+ENV GOSUMDB=off
+
+# Сначала модули — кеш зависимостей
+COPY go.mod ./
+RUN go mod download
+
+# Теперь весь код и доводим модуль до консистентного состояния
+COPY . .
+RUN go mod tidy
+
+# Сборка бинарника
+RUN go build -o /out/agent ./cmd/agent
+
+FROM gcr.io/distroless/base-debian12
+COPY --from=build /out/agent /agent
+ENV GOTRACEBACK=single
+EXPOSE 9090 7070
+ENTRYPOINT ["/agent"]

@@ -1,6 +1,14 @@
 global:
-  scrape_interval: 5s
+  scrape_interval: 2s
+
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
 scrape_configs:
-  - job_name: 'agents'
+  - job_name: prometheus
     static_configs:
-      - targets: ['agent_control:9090','agent_experiment:9090']
+      - targets: ["prometheus:9090"]
+
+  - job_name: l0_agents
+    static_configs:
+      - targets: ["agent_control:9090","agent_experiment:9090"]

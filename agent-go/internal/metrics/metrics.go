@@ -1,30 +1,62 @@
 package metrics
 
 import (
+	"net/http"
+	"sync"
+	"time"
+
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Registry struct {
-	Gatherer *prometheus.Registry
+	reg         *prometheus.Registry
+	FirstSeenTS *prometheus.GaugeVec
+	FirstCount  *prometheus.CounterVec
+
+	mu        sync.RWMutex
+	firstSeen map[string]float64
+	mode      string
 }
 
-func NewRegistry() *Registry {
-	reg := prometheus.NewRegistry()
-	return &Registry{Gatherer: reg}
+func New(mode string) *Registry {
+	r := prometheus.NewRegistry()
+	firstTS := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "l0_first_seen_ts_seconds",
+		Help: "Unix timestamp when txid first seen by this agent",
+	}, []string{"txid", "mode"})
+	firstCnt := prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "l0_first_seen_count",
+		Help: "Number of first-seen transactions observed",
+	}, []string{"mode"})
+
+	r.MustRegister(firstTS, firstCnt)
+	return &Registry{
+		reg:         r,
+		FirstSeenTS: firstTS,
+		FirstCount:  firstCnt,
+		firstSeen:   make(map[string]float64),
+		mode:        mode,
+	}
 }
 
-type Collector struct {
-	lat prometheus.Summary
+func (m *Registry) ObserveFirstSeen(txid string, t time.Time) {
+	labels := prometheus.Labels{"txid": txid, "mode": m.mode}
+	m.FirstSeenTS.With(labels).Set(float64(t.Unix()))
+	m.FirstCount.With(prometheus.Labels{"mode": m.mode}).Inc()
+	m.mu.Lock()
+	m.firstSeen[txid] = float64(t.Unix())
+	m.mu.Unlock()
 }
 
-func NewCollector(r *Registry) *Collector {
-	lat := prometheus.NewSummary(prometheus.SummaryOpts{
-		Name: "l0_latency_ms",
-		Help: "Latency observed by the agent",
-		Objectives: map[float64]float64{0.5:0.01, 0.95:0.005, 0.99:0.001},
-	})
-	r.Gatherer.MustRegister(lat)
-	return &Collector{lat: lat}
-}
+func (m *Registry) MetricsHandler() http.Handler { return promhttp.HandlerFor(m.reg, promhttp.HandlerOpts{}) }
 
-func (c *Collector) ObserveLatency(ms float64) { c.lat.Observe(ms) }
+func (m *Registry) FirstSeenSnapshot() map[string]float64 {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	out := make(map[string]float64, len(m.firstSeen))
+	for k, v := range m.firstSeen {
+		out[k] = v
+	}
+	return out
+}

@@ -150,3 +150,105 @@ services:
       - ../grafana/dashboards:/var/lib/grafana/dashboards:ro
       - ../grafana/provisioning:/etc/grafana/provisioning:ro
     depends_on: [prometheus]
+
+  btc2:
+    image: ruimarinho/bitcoin-core:latest
+    command:
+      - -regtest
+      - -rpcuser=user
+      - -rpcpassword=pass
+      - -rpcallowip=::/0
+      - -rpcbind=0.0.0.0
+      - -txindex=1
+      - -fallbackfee=0.0002
+      - -zmqpubrawtx=tcp://0.0.0.0:28332
+      - -zmqpubrawblock=tcp://0.0.0.0:28333
+      - -port=18446
+      - -rpcport=18445
+      - -listen=1
+      - -dnsseed=0
+
+  btc3:
+    image: ruimarinho/bitcoin-core:latest
+    command:
+      - -regtest
+      - -rpcuser=user
+      - -rpcpassword=pass
+      - -rpcallowip=::/0
+      - -rpcbind=0.0.0.0
+      - -txindex=1
+      - -fallbackfee=0.0002
+      - -zmqpubrawtx=tcp://0.0.0.0:28332
+      - -zmqpubrawblock=tcp://0.0.0.0:28333
+      - -port=18448
+      - -rpcport=18447
+      - -listen=1
+      - -dnsseed=0
+
+  btc2:
+    image: ruimarinho/bitcoin-core:latest
+    command:
+      - -regtest
+      - -rpcuser=user
+      - -rpcpassword=pass
+      - -rpcallowip=::/0
+      - -rpcbind=0.0.0.0
+      - -txindex=1
+      - -fallbackfee=0.0002
+      - -zmqpubrawtx=tcp://0.0.0.0:28332
+      - -zmqpubrawblock=tcp://0.0.0.0:28333
+      - -port=18446
+      - -rpcport=18445
+      - -listen=1
+      - -dnsseed=0
+
+  btc3:
+    image: ruimarinho/bitcoin-core:latest
+    command:
+      - -regtest
+      - -rpcuser=user
+      - -rpcpassword=pass
+      - -rpcallowip=::/0
+      - -rpcbind=0.0.0.0
+      - -txindex=1
+      - -fallbackfee=0.0002
+      - -zmqpubrawtx=tcp://0.0.0.0:28332
+      - -zmqpubrawblock=tcp://0.0.0.0:28333
+      - -port=18448
+      - -rpcport=18447
+      - -listen=1
+      - -dnsseed=0
+
+  btc2:
+    image: ruimarinho/bitcoin-core:latest
+    command:
+      - -regtest
+      - -rpcuser=user
+      - -rpcpassword=pass
+      - -rpcallowip=::/0
+      - -rpcbind=0.0.0.0
+      - -txindex=1
+      - -fallbackfee=0.0002
+      - -zmqpubrawtx=tcp://0.0.0.0:28332
+      - -zmqpubrawblock=tcp://0.0.0.0:28333
+      - -port=18446
+      - -rpcport=18445
+      - -listen=1
+      - -dnsseed=0
+
+  btc3:
+    image: ruimarinho/bitcoin-core:latest
+    command:
+      - -regtest
+      - -rpcuser=user
+      - -rpcpassword=pass
+      - -rpcallowip=::/0
+      - -rpcbind=0.0.0.0
+      - -txindex=1
+      - -fallbackfee=0.0002
+      - -zmqpubrawtx=tcp://0.0.0.0:28332
+      - -zmqpubrawblock=tcp://0.0.0.0:28333
+      - -port=18448
+      - -rpcport=18447
+      - -listen=1
+      - -dnsseed=0

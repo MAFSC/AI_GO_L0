@@ -1,71 +1,65 @@
 package overlay
 
 import (
-	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
 	"time"
-	"fmt"
 
+	"github.com/pebbe/zmq4"
 	"github.com/rs/zerolog/log"
+
 	"github.com/example/l0-btc-regtest-ai-agent/agent-go/internal/metrics"
 )
 
-type Config struct {
-	ListenAddr string
-	MaxPeers   int
-	BatchMax   int
-	FlushEvery time.Duration
+type Collector struct {
+	mode   string
+	reg    *metrics.Registry
+	rawtxE string
 }
 
-type Policy interface {
-	Suggest(now time.Time, snapshot Snapshot) Decision
-	Report(feedback Feedback)
+func NewCollector(mode, zmqRawTxEndpoint string, reg *metrics.Registry) *Collector {
+	return &Collector{mode: mode, rawtxE: zmqRawTxEndpoint, reg: reg}
 }
 
-type Snapshot struct {
-	Peers int
-	Queue int
-	RTTms float64
-	Loss  float64
-}
-
-type Decision struct {
-	BatchMax   int
-	FlushEvery time.Duration
-	PeerWeight map[string]float64
-}
-
-type Feedback struct {
-	LatencyMs float64
-	Duplicates int
-}
-
-type Overlay struct {
-	cfg Config
-	metrics *metrics.Collector
-}
-
-func New(reg *metrics.Registry, cfg Config) *Overlay {
-	return &Overlay{cfg: cfg, metrics: metrics.NewCollector(reg)}
-}
-
-func (o *Overlay) Run(ctx context.Context, p Policy) error {
-	t := time.NewTicker(250 * time.Millisecond)
-	defer t.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case now := <-t.C:
-			// TODO: collect real snapshot from sockets/queues
-			snap := Snapshot{Peers: 5, Queue: 200, RTTms: 80, Loss: 0.2}
-			dec := p.Suggest(now, snap)
-			_ = dec // apply to send queues
-
-			// feedback demo
-			p.Report(Feedback{LatencyMs: 120, Duplicates: 3})
-			o.metrics.ObserveLatency(120)
-			log.Debug().Str("apply", fmt.Sprintf("%+v", dec)).Msg("tick")
-		}
+func (c *Collector) Start() error {
+	if c.rawtxE == "" {
+		return errors.New("empty zmq endpoint")
 	}
+	sub, err := zmq4.NewSocket(zmq4.SUB)
+	if err != nil {
+		return err
+	}
+	if err := sub.Connect(c.rawtxE); err != nil {
+		return err
+	}
+	if err := sub.SetSubscribe("rawtx"); err != nil {
+		return err
+	}
+	log.Info().Str("endpoint", c.rawtxE).Msg("ZMQ subscribed to rawtx")
+
+	go func() {
+		defer sub.Close()
+		for {
+			parts, err := sub.RecvMessageBytes(0)
+			if err != nil {
+				log.Warn().Err(err).Msg("zmq recv failed")
+				time.Sleep(500 * time.Millisecond)
+				continue
+			}
+			if len(parts) < 2 {
+				continue
+			}
+			raw := parts[1]
+			h1 := sha256.Sum256(raw)
+			h2 := sha256.Sum256(h1[:])
+			rev := make([]byte, len(h2))
+			for i := 0; i < len(h2); i++ {
+				rev[i] = h2[len(h2)-1-i]
+			}
+			txid := hex.EncodeToString(rev)
+			c.reg.ObserveFirstSeen(txid, time.Now())
+		}
+	}()
+	return nil
 }

@@ -1,0 +1,40 @@
+{
+  "title": "L0 BTC Regtest",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": ["l0","regtest","bitcoin"],
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Δ first-seen p50 (ms)",
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "quantile(0.5, l0_first_seen_delta_ms)" }],
+      "options": { "reduceOptions": {"calcs": ["lastNotNull"]} },
+      "gridPos": {"h":4,"w":6,"x":0,"y":0}
+    },
+    {
+      "type": "stat",
+      "title": "Δ first-seen p95 (ms)",
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "quantile(0.95, l0_first_seen_delta_ms)" }],
+      "options": { "reduceOptions": {"calcs": ["lastNotNull"]} },
+      "gridPos": {"h":4,"w":6,"x":6,"y":0}
+    },
+    {
+      "type": "timeseries",
+      "title": "Δ first-seen per tx (ms)",
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "l0_first_seen_delta_ms" }],
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "points"}}},
+      "gridPos": {"h":8,"w":12,"x":0,"y":4}
+    },
+    {
+      "type": "bargauge",
+      "title": "First-seen count (control vs experiment)",
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "sum by (mode) (l0_first_seen_count)" }],
+      "gridPos": {"h":6,"w":12,"x":0,"y":12}
+    }
+  ]
+}

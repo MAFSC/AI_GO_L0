@@ -1,0 +1,6 @@
+groups:
+- name: l0-first-seen
+  interval: 5s
+  rules:
+  - record: l0_first_seen_delta_ms
+    expr: (l0_first_seen_ts_seconds{mode="experiment"} - on (txid) l0_first_seen_ts_seconds{mode="control"}) * 1000
