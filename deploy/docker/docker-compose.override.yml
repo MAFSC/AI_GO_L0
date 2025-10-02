@@ -1,0 +1,9 @@
+services:
+  agent_control:
+    command: ["/agent","-mode","control",
+              "-zmq","tcp://btc2:28332",
+              "-rpc","http://user:pass@btc2:18443"]
+  agent_experiment:
+    command: ["/agent","-mode","experiment",
+              "-zmq","tcp://btc3:28332",
+              "-rpc","http://user:pass@btc3:18443"]

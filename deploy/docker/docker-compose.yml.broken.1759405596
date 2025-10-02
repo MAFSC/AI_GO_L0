@@ -1,0 +1,165 @@
+services:
+  btc1:
+    image: ruimarinho/bitcoin-core:latest
+    command:
+      - -regtest
+      - -rpcuser=user
+      - -rpcpassword=pass
+      - -rpcallowip=::/0
+      - -rpcbind=0.0.0.0
+      - -txindex=1
+      - -fallbackfee=0.0002
+      - -zmqpubrawtx=tcp://0.0.0.0:28332
+      - -zmqpubrawblock=tcp://0.0.0.0:28333
+      - -port=18444
+      - -rpcport=18443
+      - -listen=1
+      - -dnsseed=0
+      - -peerbloomfilters=1
+    ports:
+      - "18443:18443"
+      - "28332:28332"
+      - "28333:28333"
+
+    image: ruimarinho/bitcoin-core:latest
+    command: ["-regtest","-rpcuser=user","-rpcpassword=pass","-txindex=1","-zmqpubrawtx=tcp://0.0.0.0:28332","-zmqpubrawblock=tcp://0.0.0.0:28333","-port=18444","-rpcport=18443","-listen=1","-dnsseed=0"]
+  btc4:
+    image: ruimarinho/bitcoin-core:latest
+    command: ["-regtest","-rpcuser=user","-rpcpassword=pass","-txindex=1","-zmqpubrawtx=tcp://0.0.0.0:28332","-zmqpubrawblock=tcp://0.0.0.0:28333","-port=18444","-rpcport=18443","-listen=1","-dnsseed=0"]
+  btc5:
+    image: ruimarinho/bitcoin-core:latest
+    command: ["-regtest","-rpcuser=user","-rpcpassword=pass","-txindex=1","-zmqpubrawtx=tcp://0.0.0.0:28332","-zmqpubrawblock=tcp://0.0.0.0:28333","-port=18444","-rpcport=18443","-listen=1","-dnsseed=0"]
+
+  # сетевые импэрменты (опционально)
+  netem:
+    image: alpine:3.20
+    command: ["/bin/sh","/scripts/netem.sh"]
+    volumes:
+      - ./scripts:/scripts
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    ports: ["9090:9090"]
+    volumes:
+      - ../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../prometheus/rules:/etc/prometheus/rules:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-lifecycle
+    depends_on: [agent_control, agent_experiment]
+
+  # Grafana
+  grafana:
+    image: grafana/grafana-oss:10.2.3
+    ports: ["3000:3000"]
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    volumes:
+      - ../grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ../grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on: [prometheus]
+
+  # L0 AI agents
+  agent_control:
+    build:
+      context: ../../agent-go
+      dockerfile: Dockerfile
+    environment:
+      - EXPERIMENT_GROUP=control
+      - METRICS_ADDR=:9090
+      - OVERLAY_LISTEN=:7070
+      - BTC_RPC_HOST=btc2
+      - BTC_RPC_PORT=18443
+      - BTC_RPC_USER=user
+      - BTC_RPC_PASS=pass
+      - BTC_ZMQ_RAWTX=tcp://btc2:28332
+      - BTC_ZMQ_RAWBLOCK=tcp://btc2:28333
+    depends_on: [btc2]
+    ports: ["9101:9090"]
+
+  agent_experiment:
+    build:
+      context: ../../agent-go
+      dockerfile: Dockerfile
+    environment:
+      - EXPERIMENT_GROUP=experiment
+      - METRICS_ADDR=:9090
+      - OVERLAY_LISTEN=:7070
+      - BTC_RPC_HOST=btc3
+      - BTC_RPC_PORT=18443
+      - BTC_RPC_USER=user
+      - BTC_RPC_PASS=pass
+      - BTC_ZMQ_RAWTX=tcp://btc3:28332
+      - BTC_ZMQ_RAWBLOCK=tcp://btc3:28333
+    depends_on: [btc3]
+    ports: ["9102:9090"]
+  btc2:
+    image: ruimarinho/bitcoin-core:latest
+    command:
+      - -regtest
+      - -rpcuser=user
+      - -rpcpassword=pass
+      - -rpcallowip=::/0
+      - -rpcbind=0.0.0.0
+      - -txindex=1
+      - -fallbackfee=0.0002
+      - -zmqpubrawtx=tcp://0.0.0.0:28332
+      - -zmqpubrawblock=tcp://0.0.0.0:28333
+      - -port=18444
+      - -rpcport=18443
+      - -listen=1
+      - -dnsseed=0
+
+  btc3:
+    image: ruimarinho/bitcoin-core:latest
+    command:
+      - -regtest
+      - -rpcuser=user
+      - -rpcpassword=pass
+      - -rpcallowip=::/0
+      - -rpcbind=0.0.0.0
+      - -txindex=1
+      - -fallbackfee=0.0002
+      - -zmqpubrawtx=tcp://0.0.0.0:28332
+      - -zmqpubrawblock=tcp://0.0.0.0:28333
+      - -port=18444
+      - -rpcport=18443
+      - -listen=1
+      - -dnsseed=0
+
+  btc4:
+    image: ruimarinho/bitcoin-core:latest
+    command:
+      - -regtest
+      - -rpcuser=user
+      - -rpcpassword=pass
+      - -rpcallowip=::/0
+      - -rpcbind=0.0.0.0
+      - -txindex=1
+      - -fallbackfee=0.0002
+      - -zmqpubrawtx=tcp://0.0.0.0:28332
+      - -zmqpubrawblock=tcp://0.0.0.0:28333
+      - -port=18444
+      - -rpcport=18443
+      - -listen=1
+      - -dnsseed=0
+
+  btc5:
+    image: ruimarinho/bitcoin-core:latest
+    command:
+      - -regtest
+      - -rpcuser=user
+      - -rpcpassword=pass
+      - -rpcallowip=::/0
+      - -rpcbind=0.0.0.0
+      - -txindex=1
+      - -fallbackfee=0.0002
+      - -zmqpubrawtx=tcp://0.0.0.0:28332
+      - -zmqpubrawblock=tcp://0.0.0.0:28333
+      - -port=18444
+      - -rpcport=18443
+      - -listen=1
+      - -dnsseed=0

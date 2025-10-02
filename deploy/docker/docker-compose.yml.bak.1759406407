@@ -94,6 +94,29 @@ services:
     volumes:
       - ./scripts:/scripts
 
+  prometheus:
+    image: prom/prometheus:latest
+    ports: ["9090:9090"]
+    volumes:
+      - ../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../prometheus/rules:/etc/prometheus/rules:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-lifecycle
+    depends_on: [agent_control, agent_experiment]
+
+  grafana:
+    image: grafana/grafana-oss:10.2.3
+    ports: ["3000:3000"]
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    volumes:
+      - ../grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ../grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on: [prometheus]
+
   agent_control:
     build:
       context: ../../agent-go
@@ -127,26 +150,3 @@ services:
       - BTC_ZMQ_RAWBLOCK=tcp://btc3:28333
     depends_on: [btc3]
     ports: ["9102:9090"]
-
-  prometheus:
-    image: prom/prometheus:latest
-    ports: ["9090:9090"]
-    volumes:
-      - ../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ../prometheus/rules:/etc/prometheus/rules:ro
-    command:
-      - --config.file=/etc/prometheus/prometheus.yml
-      - --web.enable-lifecycle
-    depends_on: [agent_control, agent_experiment]
-
-  grafana:
-    image: grafana/grafana-oss:10.2.3
-    ports: ["3000:3000"]
-    environment:
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
-      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
-    volumes:
-      - ../grafana/dashboards:/var/lib/grafana/dashboards:ro
-      - ../grafana/provisioning:/etc/grafana/provisioning:ro
-    depends_on: [prometheus]
