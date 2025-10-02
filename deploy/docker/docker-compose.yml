@@ -1,7 +1,6 @@
-version: "3.8"
 services:
   btc1:
-    image: ruimarinho/bitcoin-core:26.0
+    image: ruimarinho/bitcoin-core:latest
     command: [
       "-regtest","-printtoconsole","-server=1","-txindex=1",
       "-rpcallowip=0.0.0.0/0","-rpcbind=0.0.0.0",
@@ -12,16 +11,16 @@ services:
     ]
     ports: ["18443:18443","28332:28332","28333:28333"]
   btc2:
-    image: ruimarinho/bitcoin-core:26.0
+    image: ruimarinho/bitcoin-core:latest
     command: ["-regtest","-printtoconsole","-server=1","-txindex=1","-rpcuser=user","-rpcpassword=pass"]
   btc3:
-    image: ruimarinho/bitcoin-core:26.0
+    image: ruimarinho/bitcoin-core:latest
     command: ["-regtest","-printtoconsole","-server=1","-txindex=1","-rpcuser=user","-rpcpassword=pass"]
   btc4:
-    image: ruimarinho/bitcoin-core:26.0
+    image: ruimarinho/bitcoin-core:latest
     command: ["-regtest","-printtoconsole","-server=1","-txindex=1","-rpcuser=user","-rpcpassword=pass"]
   btc5:
-    image: ruimarinho/bitcoin-core:26.0
+    image: ruimarinho/bitcoin-core:latest
     command: ["-regtest","-printtoconsole","-server=1","-txindex=1","-rpcuser=user","-rpcpassword=pass"]
 
   agent_control:
