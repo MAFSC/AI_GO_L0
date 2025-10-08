@@ -26,7 +26,7 @@ systemctl start ai-model-retrain.service
 # Stack check (timer + health)
  /root/check_retrain_stack.sh
 
-# Timer Management
+№№ ⏱ Timer Management
 systemctl list-timers ai-model-retrain.timer
 systemctl enable  ai-model-retrain.timer     # enable scheduled retrain
 systemctl disable ai-model-retrain.timer     # disable schedule
@@ -97,4 +97,5 @@ find /root/models -type f -name 'latency_model_ext_*.joblib' -mtime +30 -print -
 ![Retrain Service](https://img.shields.io/badge/retrain-service-green)
 ![Healthz](https://img.shields.io/badge/health-passing-brightgreen)
 ![Prometheus](https://img.shields.io/badge/metrics-exported-blue)
+
 
