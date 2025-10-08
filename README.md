@@ -8,9 +8,9 @@ systemctl start ai-model-retrain.service
 
 ## Timer Management
 systemctl list-timers ai-model-retrain.timer
-systemctl enable  ai-model-retrain.timer     # enable scheduled retrain
-systemctl disable ai-model-retrain.timer     # disable schedule
-systemctl start   ai-model-retrain.timer     # trigger timer now
+systemctl enable  ai-model-retrain.timer     
+systemctl disable ai-model-retrain.timer   
+systemctl start   ai-model-retrain.timer     
 systemctl stop    ai-model-retrain.timer
 
 ## Logs & Service Status
@@ -59,6 +59,7 @@ find /root/models -type f -name 'latency_model_ext_*.joblib' -mtime +30 -print -
 | `/var/lib/ai-retrain/`                       | Train logs and sanity check data |
 | `/var/lib/node_exporter/textfile_collector/` | Prometheus textfile metrics      |
 | `/etc/ai-retrain.conf`                       | Sanity check thresholds          |
+
 
 
 
